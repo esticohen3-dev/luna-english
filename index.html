@@ -226,6 +226,7 @@ button:focus-visible{outline:4px solid var(--lilac);outline-offset:3px}
 .seg{display:flex;gap:8px;flex-wrap:wrap}
 .seg button{flex:1;padding:10px;border-radius:14px;background:var(--lilac-soft);font-size:17px;font-weight:500}
 .seg button.on{background:var(--lilac);color:#fff}
+.vsel{font:inherit;font-size:17px;padding:10px 12px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);width:100%;direction:ltr}
 .note{font-size:15px;color:var(--ink-soft);line-height:1.45;margin:0}
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
@@ -325,12 +326,22 @@ const sfx={
 
 /* =================== SPEECH =================== */
 let enVoice=null,heVoice=null;
-function pickVoices(){
+function voiceScore(v){
+  let sc=0;const n=v.name;
+  if(/premium|enhanced|natural|neural|wavenet|online/i.test(n))sc+=10;
+  if(/Ava|Samantha|Zoe|Allison|Jenny|Aria|Ana|Google US English|Carmit|Hila/i.test(n))sc+=4;
+  if(/en[-_]US/i.test(v.lang))sc+=2;
+  if(/Fred|Albert|Bad News|Bells|Boing|Bubbles|Cellos|Jester|Organ|Trinoids|Whisper|Zarvox|Wobble|Superstar|Grandpa|Grandma|Rocko|Shelley|Junior|Ralph|Kathy|Eddy|Reed|Sandy|Flo/i.test(n))sc-=20;
+  return sc;
+}
+function voicesFor(re){
   const vs=(window.speechSynthesis&&speechSynthesis.getVoices())||[];
-  const en=vs.filter(v=>/^en[-_]/i.test(v.lang));
-  enVoice=en.find(v=>/en[-_]US/i.test(v.lang)&&/Samantha|Google US|Aria|Jenny|Ava|Allison|Zira/i.test(v.name))
-        ||en.find(v=>/en[-_]US/i.test(v.lang))||en.find(v=>/en[-_]GB/i.test(v.lang))||en[0]||null;
-  heVoice=vs.find(v=>/^(he|iw)/i.test(v.lang))||null;
+  return vs.filter(v=>re.test(v.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a));
+}
+function pickVoices(){
+  const en=voicesFor(/^en[-_]/i),he=voicesFor(/^(he|iw)/i);
+  enVoice=en.find(v=>v.name===store.settings.enVoice)||en[0]||null;
+  heVoice=he.find(v=>v.name===store.settings.heVoice)||he[0]||null;
 }
 if(window.speechSynthesis){pickVoices();speechSynthesis.onvoiceschanged=pickVoices}
 let bubbleEl=null;
@@ -347,8 +358,8 @@ function say(parts,{bubble=true}={}){
     let done=false;const fin=()=>{if(!done){done=true;res()}};
     list.forEach(([l,t],i)=>{
       const u=new SpeechSynthesisUtterance(t);
-      if(l==='en'){u.lang=enVoice?enVoice.lang:'en-US';if(enVoice)u.voice=enVoice;u.rate=store.settings.slow?.65:.82;u.pitch=1.15}
-      else{u.lang=heVoice.lang;u.voice=heVoice;u.rate=store.settings.slow?.85:.98;u.pitch=1.1}
+      if(l==='en'){u.lang=enVoice?enVoice.lang:'en-US';if(enVoice)u.voice=enVoice;u.rate=store.settings.slow?.7:.88;u.pitch=1.05}
+      else{u.lang=heVoice.lang;u.voice=heVoice;u.rate=store.settings.slow?.85:1;u.pitch=1}
       if(i===list.length-1){u.onend=fin;u.onerror=fin}
       ss.speak(u);
     });
@@ -603,6 +614,10 @@ function album(){
 }
 
 /* =================== PARENTS =================== */
+function voiceSelect(id,list,cur){
+  const tag=v=>/premium|enhanced|natural|neural|wavenet|online/i.test(v.name)?' ⭐':'';
+  return `<select id="${id}" class="vsel">${list.map(v=>`<option value="${v.name.replace(/"/g,'&quot;')}" ${cur&&v.name===cur.name?'selected':''}>${v.name}${tag(v)} (${v.lang})</option>`).join('')}</select>`;
+}
 function settings(){
   pickVoices();
   const s=store.settings;
@@ -613,8 +628,9 @@ function settings(){
     <div class="set"><label>מהירות דיבור</label>${seg('slow',[[false,'רגילה'],[true,'איטית']])}</div>
     <div class="set"><label>כמה תמונות לבחירה</label>${seg('options',[[2,'2'],[3,'3'],[4,'4']])}</div>
     <div class="set"><label>הוראות בקול בעברית</label>${seg('he',[[true,'כן'],[false,'לא']])}</div>
-    <p class="note">קול באנגלית: ${enVoice?enVoice.name:'ברירת המחדל של המכשיר'}<br>
-    קול בעברית: ${heVoice?heVoice.name+' ✓':'לא נמצא במכשיר. ההוראות יופיעו בכתב בבועה של לונה. אפשר להוסיף קול עברי בהגדרות הנגישות / טקסט לדיבור של המכשיר.'}</p>
+    <div class="set"><label for="enSel">הקול של לונה באנגלית</label>${voiceSelect('enSel',voicesFor(/^en[-_]/i),enVoice)}</div>
+    <div class="set"><label for="heSel">הקול של לונה בעברית</label>${voicesFor(/^(he|iw)/i).length?voiceSelect('heSel',voicesFor(/^(he|iw)/i),heVoice):'<p class="note">לא נמצא קול עברי במכשיר. ההוראות יופיעו בכתב בבועה של לונה.</p>'}</div>
+    <p class="note">טיפ: קולות שמסומנים Premium / Enhanced / Natural נשמעים הכי טבעיים. אם אין כאלה ברשימה, אפשר להוריד אותם בהגדרות המכשיר (פרטים אצל Claude 🙂).</p>
     <div class="seg"><button id="test">🔊 בדיקת קול</button><button id="reset">איפוס מדבקות</button></div>
     <button class="pill" id="close">סגירה</button>
   </div>`;
@@ -622,6 +638,9 @@ function settings(){
   ov.querySelectorAll('.seg[data-key]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.onclick=()=>{
     const k=g.dataset.key,v=b.dataset.v;s[k]=k==='options'?+v:v==='true';save();
     g.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))}));
+  ['enSel','heSel'].forEach(id=>{const el=ov.querySelector('#'+id);if(!el)return;el.onchange=()=>{
+    s[id==='enSel'?'enVoice':'heVoice']=el.value;save();pickVoices();
+    say(id==='enSel'?[['en','Hello! I am Luna. Red, blue, unicorn!']]:[['he','שלום, אני לונה!']],{bubble:false})}});
   ov.querySelector('#test').onclick=()=>say([['he','שלום, אני לונה.'],['en','Hello! I am Luna.']],{bubble:false});
   const rs=ov.querySelector('#reset');let armed=false;
   rs.onclick=()=>{if(!armed){armed=true;rs.textContent='ללחוץ שוב לאישור';return}store.stickers={};store.stars={};save();rs.textContent='אופס ✓'};
