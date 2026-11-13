@@ -69,17 +69,20 @@ button:focus-visible{outline:4px solid var(--lilac);outline-offset:3px}
 
 /* ---------- Luna + bubble ---------- */
 .luna-row{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.luna{font-size:clamp(56px,13vw,90px);line-height:1;animation:bob 2.6s ease-in-out infinite;filter:drop-shadow(0 6px 0 rgba(155,124,255,.18))}
+.luna{width:clamp(70px,16vw,104px);flex-shrink:0;line-height:0;animation:bob 2.6s ease-in-out infinite;filter:drop-shadow(0 6px 0 rgba(155,124,255,.18))}
 .bubble{
   position:relative;background:var(--card);border-radius:22px;padding:12px 18px;font-size:clamp(18px,4.2vw,24px);font-weight:500;
   box-shadow:0 4px 0 var(--line);min-height:1.4em;flex:1;min-width:0;
 }
 .bubble::before{content:"";position:absolute;right:-10px;top:50%;margin-top:-10px;border:10px solid transparent;border-left-color:var(--card);border-right:0}
+.luna svg,.big-luna svg,.mini svg{width:100%;height:auto;display:block;overflow:visible}
+.luna-eyes{transform-box:view-box;transform-origin:100px 112px;animation:blink 4.5s infinite}
+@keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.12)}}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
 
 /* ---------- splash ---------- */
 .splash{align-items:center;justify-content:center;text-align:center;gap:22px}
-.splash .big-luna{font-size:clamp(110px,30vw,180px);animation:bob 2.6s ease-in-out infinite}
+.splash .big-luna{width:clamp(160px,44vw,250px);animation:bob 2.6s ease-in-out infinite}
 .splash h1{margin:0;font-size:clamp(36px,9vw,60px);font-weight:700;line-height:1.1}
 .splash h1 span{color:var(--pink)}
 .splash p{margin:0;font-size:20px;color:var(--ink-soft)}
@@ -171,6 +174,7 @@ button:focus-visible{outline:4px solid var(--lilac);outline-offset:3px}
 .mcard .b{
   background:repeating-linear-gradient(45deg,var(--lilac) 0 12px,#ab92ff 12px 24px);box-shadow:0 5px 0 #7a5ee0;font-size:clamp(30px,8vw,52px);
 }
+.mini{width:72%;display:block}
 .mcard .f{background:var(--card);transform:rotateY(180deg);box-shadow:0 5px 0 var(--line);font-size:clamp(44px,11vw,80px)}
 .mcard.done .f{background:var(--mint-soft);box-shadow:0 5px 0 var(--good)}
 
@@ -233,6 +237,9 @@ button:focus-visible{outline:4px solid var(--lilac);outline-offset:3px}
 <canvas id="confetti"></canvas>
 
 <script>
+/* =================== LUNA =================== */
+const LUNA='<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path d="M30 35Q30 44 39 44Q30 44 30 53Q30 44 21 44Q30 44 30 35Z" fill="#ffd36b"/><path d="M174 29Q174 36 181 36Q174 36 174 43Q174 36 167 36Q174 36 174 29Z" fill="#ff9cc8"/><path d="M178 154Q178 160 184 160Q178 160 178 166Q178 160 172 160Q178 160 178 154Z" fill="#b9a2ff"/><circle cx="43.6" cy="132.5" r="23" fill="#ff9cc8"/><circle cx="42" cy="96.5" r="23" fill="#ffd36b"/><circle cx="61.4" cy="66" r="23" fill="#8fe3c8"/><circle cx="94.8" cy="50" r="23" fill="#8ccaff"/><circle cx="130" cy="58" r="23" fill="#b9a2ff"/><circle cx="154" cy="86.6" r="23" fill="#ff9cc8"/><circle cx="158" cy="127.5" r="23" fill="#ffd36b"/><path d="M60 80L48 38L86 64Z" fill="#fff" stroke="#e3d6f7" stroke-width="3" stroke-linejoin="round"/><path d="M63 72L55 50L76 64Z" fill="#ffc4dc"/><path d="M140 80L152 38L114 64Z" fill="#fff" stroke="#e3d6f7" stroke-width="3" stroke-linejoin="round"/><path d="M137 72L145 50L124 64Z" fill="#ffc4dc"/><ellipse cx="100" cy="118" rx="58" ry="54" fill="#fff" stroke="#e3d6f7" stroke-width="3"/><path d="M100 12L112 66Q100 73 88 66Z" fill="#ffd36b" stroke="#f0b53c" stroke-width="2.5" stroke-linejoin="round"/><path d="M91 55L109 48M94 42L107 37M96 29L104 26" stroke="#f0b53c" stroke-width="3" stroke-linecap="round"/><circle cx="84" cy="72" r="13" fill="#b9a2ff"/><circle cx="116" cy="72" r="13" fill="#ff9cc8"/><circle cx="100" cy="76" r="9" fill="#8fe3c8"/><ellipse cx="62" cy="132" rx="11" ry="7" fill="#ffb3d1" opacity=".85"/><ellipse cx="138" cy="132" rx="11" ry="7" fill="#ffb3d1" opacity=".85"/><ellipse cx="100" cy="147" rx="33" ry="21" fill="#ffe8f2"/><ellipse cx="90" cy="142" rx="3.5" ry="2.5" fill="#e99bbd"/><ellipse cx="110" cy="142" rx="3.5" ry="2.5" fill="#e99bbd"/><path d="M88 153Q100 163 112 153" fill="none" stroke="#3d2b5c" stroke-width="3" stroke-linecap="round"/><g class="luna-eyes"><ellipse cx="78" cy="112" rx="9.5" ry="12.5" fill="#3d2b5c"/><ellipse cx="122" cy="112" rx="9.5" ry="12.5" fill="#3d2b5c"/><circle cx="81.5" cy="107" r="3.8" fill="#fff"/><circle cx="125.5" cy="107" r="3.8" fill="#fff"/><circle cx="75.5" cy="117" r="1.6" fill="#fff"/><circle cx="119.5" cy="117" r="1.6" fill="#fff"/><path d="M69 104l-7-4M71 99l-4-7M131 104l7-4M129 99l4-7" stroke="#3d2b5c" stroke-width="2.5" stroke-linecap="round"/></g></svg>';
+
 /* =================== DATA =================== */
 const TOPICS=[
  {id:'colors',he:'צבעים',en:'Colors',icon:'🎨',tc:'#ffe0ec',ts:'#f6b3cf',words:[
@@ -351,12 +358,12 @@ function say(parts,{bubble=true}={}){
 
 /* =================== SCREENS =================== */
 let cur={topic:null};
-function lunaRow(text){return `<div class="luna-row"><div class="luna" aria-hidden="true">🦄</div><div class="bubble" id="bubble">${text}</div></div>`}
+function lunaRow(text){return `<div class="luna-row"><div class="luna" aria-hidden="true">${LUNA}</div><div class="bubble" id="bubble">${text}</div></div>`}
 function mount(html){clearGame();app.innerHTML=html;bubbleEl=document.getElementById('bubble');app.firstElementChild&&app.firstElementChild.scrollTo(0,0)}
 
 function splash(){
   mount(`<div class="screen splash">
-    <div class="big-luna" aria-hidden="true">🦄</div>
+    <div class="big-luna" aria-hidden="true">${LUNA}</div>
     <h1>אנגלית<br>עם <span>לונה</span></h1>
     <p>חד-קרן שמדברת אנגלית</p>
     <button class="go" id="go">בואי נשחק!</button>
@@ -481,7 +488,7 @@ function memory(t){
   mount(`<div class="screen">
     ${topBar('משחק זיכרון')}
     ${lunaRow('מצאי שתי תמונות זהות!')}
-    <div class="mem" id="mem">${cards.map((w,k)=>`<button class="mcard" data-k="${k}" aria-label="קלף"><span class="in"><span class="b">🦄</span><span class="f">${pic(w)}</span></span></button>`).join('')}</div>
+    <div class="mem" id="mem">${cards.map((w,k)=>`<button class="mcard" data-k="${k}" aria-label="קלף"><span class="in"><span class="b"><span class="mini">${LUNA}</span></span><span class="f">${pic(w)}</span></span></button>`).join('')}</div>
   </div>`);
   bindBack(()=>topicScreen(t));
   say([['he','מצאי שתי תמונות זהות!']]);
